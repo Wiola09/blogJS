@@ -1,5 +1,13 @@
 //jshint esversion:6
 
+// Load environment variables from .env file (if dotenv is installed)
+try {
+  require('dotenv').config();
+} catch (e) {
+  // dotenv not installed, use system environment variables
+  console.log("Note: dotenv not installed. Using system environment variables.");
+}
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
@@ -17,11 +25,35 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
-const passMdb = process.env.PASS; 
-const putanja = "mongodb+srv://admin-miroslav:"+passMdb+"@cluster0.audngwq.mongodb.net/PostDB"
-mongoose.connect(
-  putanja
-);
+// MongoDB connection - environment variables (required)
+const mongoUsername = process.env.MONGODB_USERNAME;
+const mongoPassword = process.env.MONGODB_PASSWORD || process.env.PASS;
+const mongoCluster = process.env.MONGODB_CLUSTER;
+const mongoDatabase = process.env.MONGODB_DATABASE;
+
+// Check if all required environment variables are provided
+if (!mongoUsername) {
+  console.error("ERROR: MONGODB_USERNAME environment variable is required!");
+  process.exit(1);
+}
+
+if (!mongoPassword) {
+  console.error("ERROR: MONGODB_PASSWORD or PASS environment variable is required!");
+  process.exit(1);
+}
+
+if (!mongoCluster) {
+  console.error("ERROR: MONGODB_CLUSTER environment variable is required!");
+  process.exit(1);
+}
+
+if (!mongoDatabase) {
+  console.error("ERROR: MONGODB_DATABASE environment variable is required!");
+  process.exit(1);
+}
+
+const putanja = `mongodb+srv://${mongoUsername}:${mongoPassword}@${mongoCluster}/${mongoDatabase}`;
+mongoose.connect(putanja);
 
 const postSchema = {
   title: String,
